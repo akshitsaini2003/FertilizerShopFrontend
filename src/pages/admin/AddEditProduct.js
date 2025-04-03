@@ -42,11 +42,15 @@ const AddEditProduct = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [showImageModal, setShowImageModal] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-
-  const presentationOptions = {
-    'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
-    'Liquid Form': ['10ml', '80ml', '1l']
-  };
+  
+  // Update the presentationOptions constant
+const presentationOptions = {
+  'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
+  'Liquid Form': ['10ml', '80ml', '1l'],
+  'Seed Form': ['1kg', '5kg', '25kg'],
+  'Granules Form': ['45kg'],
+  'Jaivik Form': ['40kg']
+};
 
   const categories = ['wheat', 'rice', 'sugarcane', 'bajra', 'vegetable', 'Mango'];
 
@@ -100,24 +104,29 @@ const AddEditProduct = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    if (name === 'presentation') {
-      const defaultSize = value === 'Liquid Form' ? '10ml' : '100gm';
-      setProduct(prev => ({
-        ...prev,
-        presentation: value,
-        presentationSize: prev.presentationSize || defaultSize
-      }));
-    } else {
-      setProduct(prev => ({ ...prev, [name]: value }));
-    }
+  if (name === 'presentation') {
+    let defaultSize = '100gm';
+    if (value === 'Liquid Form') defaultSize = '10ml';
+    else if (value === 'Seed Form') defaultSize = '1kg';
+    else if (value === 'Granules Form') defaultSize = '45kg';
+    else if (value === 'Jaivik Form') defaultSize = '40kg';
+    
+    setProduct(prev => ({
+      ...prev,
+      presentation: value,
+      presentationSize: prev.presentationSize || defaultSize
+    }));
+  } else {
+    setProduct(prev => ({ ...prev, [name]: value }));
+  }
 
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: null }));
-    }
-  };
+  if (validationErrors[name]) {
+    setValidationErrors(prev => ({ ...prev, [name]: null }));
+  }
+};
 
   const handleNumberChange = (e) => {
     const { name, value } = e.target;
@@ -225,7 +234,11 @@ const AddEditProduct = () => {
         discount: product.discount === '' ? 0 : Number(product.discount),
         price: Number(product.price),
         quantityInStock: Number(product.quantityInStock),
-        presentationSize: product.presentationSize || (product.presentation === 'Liquid Form' ? '10ml' : '100gm')
+         presentationSize: product.presentationSize || 
+        (product.presentation === 'Liquid Form' ? '10ml' :
+         product.presentation === 'Seed Form' ? '1kg' :
+         product.presentation === 'Granules Form' ? '45kg' :
+         product.presentation === 'Jaivik Form' ? '40kg' : '100gm')
       };
 
       if (isEdit) {
@@ -312,6 +325,9 @@ const AddEditProduct = () => {
                   >
                     <option value="Powder Form">Powder Form</option>
                     <option value="Liquid Form">Liquid Form</option>
+                    <option value="Seed Form">Seed Form</option>
+                    <option value="Granules Form">Granules Form</option>
+                    <option value="Jaivik Form">Jaivik Form</option>
                   </Form.Select>
                 </FloatingLabel>
 
