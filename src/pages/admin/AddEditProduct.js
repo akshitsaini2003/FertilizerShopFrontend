@@ -22,7 +22,7 @@ const AddEditProduct = () => {
   const [product, setProduct] = useState({
     name: '',
     category: 'wheat',
-    presentation: 'Powder Form',
+    presentation: 'Powder/Granules Form',
     presentationSize: '100gm',
     images: [],
     discount: '',
@@ -310,7 +310,7 @@ const AddEditProduct = () => {
                     value={product.presentation}
                     onChange={handleChange}
                   >
-                    <option value="Powder Form">Powder Form</option>
+                    <option value="Powder/Granules Form">Powder/Granules Form</option>
                     <option value="Liquid Form">Liquid Form</option>
                   </Form.Select>
                 </FloatingLabel>
