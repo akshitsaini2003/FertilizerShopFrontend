@@ -44,7 +44,7 @@ const AddEditProduct = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const presentationOptions = {
-    'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
+    'Powder/Granules Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
     'Liquid Form': ['10ml', '80ml', '1l']
   };
 
