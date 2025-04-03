@@ -42,11 +42,11 @@ const Footer = () => {
             <ul className="list-unstyled">
               <li className="mb-3 d-flex align-items-center">
                 <FaPhone className="me-2" />
-                <a href="tel:+919876543210" className="text-white text-decoration-none">+91 7983332595</a>
+                <a href="tel:+917983332595" className="text-white text-decoration-none">+91 7983332595</a>
               </li>
               <li className="mb-3 d-flex align-items-center">
                 <FaEnvelope className="me-2" />
-                <a href="mailto:info@fertilizershop.com" className="text-white text-decoration-none">abhisaini6065@gmail.com</a>
+                <a href="mailto:abhisaini6065@gmail.com" className="text-white text-decoration-none">abhisaini6065@gmail.com</a>
               </li>
               <li className="d-flex align-items-center">
                 <FaClock className="me-2" />
