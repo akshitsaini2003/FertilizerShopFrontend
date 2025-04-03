@@ -202,7 +202,7 @@ const Header = () => {
         {/* Cart icon - always visible */}
        <LinkContainer to="/cart" className="d-lg-none me-3">
   <Nav.Link className="position-relative">
-    <FaShoppingCart size={20} />
+    <FaShoppingCart size={20} style={{color:"white"}} />
     {cartCount > 0 && (
       <Badge 
         pill 
