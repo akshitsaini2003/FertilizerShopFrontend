@@ -200,21 +200,25 @@ const Header = () => {
         </LinkContainer>
 
         {/* Cart icon - always visible */}
-        <LinkContainer to="/cart" className="d-lg-none me-3">
-          <Nav.Link className="position-relative">
-            <FaShoppingCart size={20} />
-            {cartCount > 0 && (
-              <Badge 
-                pill 
-                bg="success" 
-                style={{ fontSize: '0.65rem' }}
-                className="position-absolute top-0 start-100 translate-middle"
-              >
-                {cartCount}
-              </Badge>
-            )}
-          </Nav.Link>
-        </LinkContainer>
+       <LinkContainer to="/cart" className="d-lg-none me-3">
+  <Nav.Link className="position-relative">
+    <FaShoppingCart size={20} />
+    {cartCount > 0 && (
+      <Badge 
+        pill 
+        bg="success" 
+        style={{ 
+          fontSize: '0.65rem',
+          position: 'absolute',
+          top: '-5px',
+          right: '-5px'
+        }}
+      >
+        {cartCount}
+      </Badge>
+    )}
+  </Nav.Link>
+</LinkContainer>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav">
           <FaBars />
