@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Navbar, Container, Nav, NavDropdown, 
-  Badge, Stack, Button
+  Badge, Stack
 } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { useNavigate } from 'react-router-dom';
