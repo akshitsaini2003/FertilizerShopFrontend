@@ -22,7 +22,7 @@ const AddEditProduct = () => {
   const [product, setProduct] = useState({
     name: '',
     category: 'wheat',
-    presentation: 'Powder/Granules Form',
+    presentation: 'Powder Form',
     presentationSize: '100gm',
     images: [],
     discount: '',
@@ -44,7 +44,7 @@ const AddEditProduct = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const presentationOptions = {
-    'Powder/Granules Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
+    'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
     'Liquid Form': ['10ml', '80ml', '1l']
   };
 
@@ -310,7 +310,7 @@ const AddEditProduct = () => {
                     value={product.presentation}
                     onChange={handleChange}
                   >
-                    <option value="Powder/Granules Form">Powder/Granules Form</option>
+                    <option value="Powder Form">Powder Form</option>
                     <option value="Liquid Form">Liquid Form</option>
                   </Form.Select>
                 </FloatingLabel>
