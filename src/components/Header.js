@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Navbar, Container, Nav, NavDropdown, 
-  Badge, Stack
+  Badge, Stack, Button
 } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -54,40 +54,22 @@ const Header = () => {
         </LinkContainer>
 
         {/* Cart icon - always visible */}
-//        <LinkContainer to="/cart" className="d-lg-none me-3">
-//   <Nav.Link className="position-relative">
-//     <FaShoppingCart size={20} style={{color:"white"}} />
-//     {cartCount > 0 && (
-//       <Badge 
-//         pill 
-//         bg="success" 
-//         style={{ 
-//           fontSize: '0.65rem',
-//           position: 'absolute',
-//           top: '-5px',
-//           right: '-5px'
-//         }}
-//       >
-//         {cartCount}
-//       </Badge>
-//     )}
-//   </Nav.Link>
-// </LinkContainer>
-<LinkContainer to="/cart" className="d-lg-none me-3">
-  <Nav.Link className="position-relative">
-    <FaShoppingCart size={20} style={{color:"white"}}/>
-    {cartCount > 0 && (
-      <Badge 
-        pill 
-        bg="success" 
-        style={{ fontSize: '0.65rem' }}
-        className="position-absolute top-0 start-100 translate-middle"
-      >
-        {cartCount}
-      </Badge>
-    )}
-  </Nav.Link>
-</LinkContainer>
+        <LinkContainer to="/cart" className="d-lg-none me-3">
+          <Nav.Link className="position-relative">
+            <FaShoppingCart size={20} style={{color:"white"}}/>
+            {cartCount > 0 && (
+              <Badge 
+                pill 
+                bg="success" 
+                style={{ fontSize: '0.65rem' }}
+                className="position-absolute top-0 start-100 translate-middle"
+              >
+                {cartCount}
+              </Badge>
+            )}
+          </Nav.Link>
+        </LinkContainer>
+
         <Navbar.Toggle aria-controls="basic-navbar-nav">
           <FaBars />
         </Navbar.Toggle>
