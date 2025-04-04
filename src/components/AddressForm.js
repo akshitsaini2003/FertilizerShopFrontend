@@ -49,7 +49,7 @@ const AddressForm = ({ onSuccess, initialData = {}, isEdit = false }) => {
       }
       
       // Redirect to cart page after successful save
-      // navigate('/cart');
+      navigate('/cart');
       
       // Call onSuccess if needed for parent component
       if (onSuccess) onSuccess();
