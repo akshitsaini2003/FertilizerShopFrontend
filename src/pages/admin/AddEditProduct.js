@@ -88,7 +88,7 @@ const AddEditProduct = () => {
     if (!product.name.trim()) errors.name = 'Product name is required';
     if (!product.price || isNaN(product.price)) errors.price = 'Valid price is required';
     if (product.price <= 0) errors.price = 'Price must be greater than 0';
-    if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100) {
+    if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100)) {
       errors.discount = 'Discount must be between 0-100';
     }
     if (!product.quantityInStock || isNaN(product.quantityInStock)) errors.quantityInStock = 'Valid quantity is required';
