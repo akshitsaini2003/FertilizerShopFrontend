@@ -295,27 +295,28 @@
 
 // export default OrderList;
 import React, { useState, useEffect } from 'react';
-import { Alert, Table, Button, Dropdown, Badge, Container, Spinner, Stack } from 'react-bootstrap';
+import { Alert, Table, Button, Dropdown, Badge, Container, Spinner, Stack, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaTimes, FaCheck, FaCog, FaEye, FaEdit, FaRupeeSign, FaBox, FaUser, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
+import { FaTimes, FaCheck, FaCog, FaEye, FaEdit, FaRupeeSign, FaBox, FaUser, FaCalendarAlt, FaCreditCard, FaExclamationTriangle } from 'react-icons/fa';
 import API from '../../utils/api';
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updatingStatus, setUpdatingStatus] = useState(null); // Track which order is being updated
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+  const [cancellationReason, setCancellationReason] = useState('');
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      setError(null);
       const { data } = await API.get('/orders');
       
       const formattedOrders = data.map(order => ({
         ...order,
-        orderId: order.orderId || order._id.substring(0, 8).toUpperCase(),
+        orderId: order.orderId || order._id,
         user: order.user || { name: 'Guest', email: 'guest@example.com' },
         items: order.items?.map(item => ({
           ...item,
@@ -340,23 +341,27 @@ const OrderList = () => {
     fetchOrders();
   }, []);
 
-  const updateStatusHandler = async (orderId, status) => {
+  const updateStatusHandler = async (orderId, status, reason = '') => {
     try {
-      setUpdatingStatus(orderId);
-      const { data } = await API.put(`/orders/${orderId}/status`, { status });
+      const payload = { status };
+      if (reason) payload.reason = reason;
+      
+      await API.put(`/orders/${orderId}/status`, payload);
       await fetchOrders();
-      toast.success(`Order #${orderId.substring(0, 8)} status updated to ${status}`);
-      return data;
+      toast.success(`Order status updated to ${status}`);
+      setShowCancelModal(false);
+      setCancellationReason('');
     } catch (error) {
       const errorMessage = error.response?.data?.message || 
-                         error.message || 
-                         'Error updating order status';
-      toast.error(`Failed to update order: ${errorMessage}`);
+        `Cannot change status from current state to ${status}`;
+      toast.error(errorMessage);
       console.error('Error updating status:', error);
-      throw error;
-    } finally {
-      setUpdatingStatus(null);
     }
+  };
+
+  const handleCancelClick = (order) => {
+    setOrderToCancel(order);
+    setShowCancelModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -366,14 +371,9 @@ const OrderList = () => {
       Processing: 'warning',
       Cancelled: 'danger',
       Returned: 'info',
-      Pending: 'secondary',
-      Failed: 'dark'
+      Pending: 'secondary'
     };
     return variants[status] || 'secondary';
-  };
-
-  const canCancelOrder = (order) => {
-    return ['Processing', 'Shipped', 'Pending'].includes(order.orderStatus);
   };
 
   if (loading) {
@@ -404,28 +404,60 @@ const OrderList = () => {
         <FaBox size={48} className="text-muted mb-3" />
         <h3>No orders found</h3>
         <p className="text-muted">When orders are placed, they will appear here</p>
-        <Button variant="primary" onClick={fetchOrders} className="mt-3">
-          Refresh
-        </Button>
       </Container>
     );
   }
 
   return (
     <Container className="py-4">
+      {/* Cancel Confirmation Modal */}
+      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaExclamationTriangle className="text-warning me-2" />
+            Confirm Order Cancellation
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>You are about to cancel order #{orderToCancel?.orderId}</p>
+          <div className="mb-3">
+            <label htmlFor="cancellationReason" className="form-label">
+              Reason for cancellation (optional):
+            </label>
+            <textarea
+              id="cancellationReason"
+              className="form-control"
+              rows="3"
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              placeholder="Enter reason for cancellation..."
+            />
+          </div>
+          <p className="text-danger">
+            <strong>Warning:</strong> This action cannot be undone.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
+            Go Back
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={() => updateStatusHandler(orderToCancel._id, 'Cancelled', cancellationReason)}
+          >
+            Confirm Cancellation
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
           <FaBox className="me-2" size={24} />
           <h2 className="mb-0">Order Management</h2>
         </div>
-        <div className="d-flex align-items-center gap-3">
-          <Button variant="outline-secondary" size="sm" onClick={fetchOrders}>
-            Refresh
-          </Button>
-          <Badge bg="secondary" pill>
-            {orders.length} {orders.length === 1 ? 'order' : 'orders'}
-          </Badge>
-        </div>
+        <Badge bg="secondary" pill>
+          {orders.length} {orders.length === 1 ? 'order' : 'orders'}
+        </Badge>
       </div>
 
       <div className="table-responsive">
@@ -553,58 +585,61 @@ const OrderList = () => {
                         variant="outline-secondary"
                         size="sm"
                         className="d-flex align-items-center"
-                        disabled={['Cancelled', 'Delivered'].includes(order.orderStatus) || updatingStatus === order._id}
+                        disabled={['Cancelled', 'Delivered', 'Returned'].includes(order.orderStatus)}
                       >
-                        {updatingStatus === order._id ? (
-                          <Spinner animation="border" size="sm" />
-                        ) : (
-                          <>
-                            <FaEdit className="me-1" />
-                          </>
-                        )}
+                        <FaEdit className="me-1" />
                       </Dropdown.Toggle>
                       <Dropdown.Menu>
                         {order.orderStatus === 'Processing' && (
-                          <Dropdown.Item 
-                            onClick={() => updateStatusHandler(order._id, 'Shipped')}
-                            className="d-flex align-items-center"
-                            disabled={updatingStatus === order._id}
-                          >
-                            <FaBox className="me-2" /> Mark as Shipped
-                          </Dropdown.Item>
-                        )}
-                        
-                        {order.orderStatus === 'Shipped' && (
-                          <Dropdown.Item 
-                            onClick={() => updateStatusHandler(order._id, 'Delivered')}
-                            className="d-flex align-items-center"
-                            disabled={updatingStatus === order._id}
-                          >
-                            <FaCheck className="me-2" /> Mark as Delivered
-                          </Dropdown.Item>
-                        )}
-                        
-                        {canCancelOrder(order) && (
                           <>
-                            {(['Processing', 'Shipped'].includes(order.orderStatus)) && <Dropdown.Divider />}
                             <Dropdown.Item 
-                              onClick={() => updateStatusHandler(order._id, 'Cancelled')}
+                              onClick={() => updateStatusHandler(order._id, 'Shipped')}
+                              className="d-flex align-items-center"
+                            >
+                              <FaBox className="me-2" /> Mark as Shipped
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item 
+                              onClick={() => handleCancelClick(order)}
                               className="text-danger d-flex align-items-center"
-                              disabled={updatingStatus === order._id}
                             >
                               <FaTimes className="me-2" /> Cancel Order
                             </Dropdown.Item>
                           </>
                         )}
-                        
-                        {!['Processing', 'Shipped', 'Cancelled', 'Delivered'].includes(order.orderStatus) && (
-                          <Dropdown.Item 
-                            onClick={() => updateStatusHandler(order._id, 'Processing')}
-                            className="d-flex align-items-center"
-                            disabled={updatingStatus === order._id}
-                          >
-                            <FaCog className="me-2" /> Mark as Processing
-                          </Dropdown.Item>
+                        {order.orderStatus === 'Shipped' && (
+                          <>
+                            <Dropdown.Item 
+                              onClick={() => updateStatusHandler(order._id, 'Delivered')}
+                              className="d-flex align-items-center"
+                            >
+                              <FaCheck className="me-2" /> Mark as Delivered
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item 
+                              onClick={() => handleCancelClick(order)}
+                              className="text-danger d-flex align-items-center"
+                            >
+                              <FaTimes className="me-2" /> Cancel Order
+                            </Dropdown.Item>
+                          </>
+                        )}
+                        {order.orderStatus === 'Pending' && (
+                          <>
+                            <Dropdown.Item 
+                              onClick={() => updateStatusHandler(order._id, 'Processing')}
+                              className="d-flex align-items-center"
+                            >
+                              <FaCog className="me-2" /> Mark as Processing
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item 
+                              onClick={() => handleCancelClick(order)}
+                              className="text-danger d-flex align-items-center"
+                            >
+                              <FaTimes className="me-2" /> Cancel Order
+                            </Dropdown.Item>
+                          </>
                         )}
                       </Dropdown.Menu>
                     </Dropdown>
