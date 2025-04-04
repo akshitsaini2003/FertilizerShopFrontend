@@ -295,19 +295,16 @@
 
 // export default OrderList;
 import React, { useState, useEffect } from 'react';
-import { Alert, Table, Button, Dropdown, Badge, Container, Spinner, Stack, Modal } from 'react-bootstrap';
+import { Alert, Table, Button, Dropdown, Badge, Container, Spinner, Stack } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaTimes, FaCheck, FaCog, FaEye, FaEdit, FaRupeeSign, FaBox, FaUser, FaCalendarAlt, FaCreditCard, FaExclamationTriangle } from 'react-icons/fa';
+import { FaTimes, FaCheck, FaCog, FaEye, FaEdit, FaRupeeSign, FaBox, FaUser, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
 import API from '../../utils/api';
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState(null);
-  const [cancellationReason, setCancellationReason] = useState('');
 
   const fetchOrders = async () => {
     try {
@@ -341,27 +338,15 @@ const OrderList = () => {
     fetchOrders();
   }, []);
 
-  const updateStatusHandler = async (orderId, status, reason = '') => {
+  const updateStatusHandler = async (orderId, status) => {
     try {
-      const payload = { status };
-      if (reason) payload.reason = reason;
-      
-      await API.put(`/orders/${orderId}/status`, payload);
+      await API.put(`/orders/${orderId}/status`, { status });
       await fetchOrders();
       toast.success(`Order status updated to ${status}`);
-      setShowCancelModal(false);
-      setCancellationReason('');
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-        `Cannot change status from current state to ${status}`;
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || 'Error updating order status');
       console.error('Error updating status:', error);
     }
-  };
-
-  const handleCancelClick = (order) => {
-    setOrderToCancel(order);
-    setShowCancelModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -370,8 +355,7 @@ const OrderList = () => {
       Shipped: 'primary',
       Processing: 'warning',
       Cancelled: 'danger',
-      Returned: 'info',
-      Pending: 'secondary'
+      Returned: 'info'
     };
     return variants[status] || 'secondary';
   };
@@ -410,46 +394,6 @@ const OrderList = () => {
 
   return (
     <Container className="py-4">
-      {/* Cancel Confirmation Modal */}
-      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FaExclamationTriangle className="text-warning me-2" />
-            Confirm Order Cancellation
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>You are about to cancel order #{orderToCancel?.orderId}</p>
-          <div className="mb-3">
-            <label htmlFor="cancellationReason" className="form-label">
-              Reason for cancellation (optional):
-            </label>
-            <textarea
-              id="cancellationReason"
-              className="form-control"
-              rows="3"
-              value={cancellationReason}
-              onChange={(e) => setCancellationReason(e.target.value)}
-              placeholder="Enter reason for cancellation..."
-            />
-          </div>
-          <p className="text-danger">
-            <strong>Warning:</strong> This action cannot be undone.
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
-            Go Back
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={() => updateStatusHandler(orderToCancel._id, 'Cancelled', cancellationReason)}
-          >
-            Confirm Cancellation
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
           <FaBox className="me-2" size={24} />
@@ -585,7 +529,7 @@ const OrderList = () => {
                         variant="outline-secondary"
                         size="sm"
                         className="d-flex align-items-center"
-                        disabled={['Cancelled', 'Delivered', 'Returned'].includes(order.orderStatus)}
+                        disabled={['Cancelled', 'Delivered'].includes(order.orderStatus)}
                       >
                         <FaEdit className="me-1" />
                       </Dropdown.Toggle>
@@ -600,7 +544,11 @@ const OrderList = () => {
                             </Dropdown.Item>
                             <Dropdown.Divider />
                             <Dropdown.Item 
-                              onClick={() => handleCancelClick(order)}
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to cancel this order?')) {
+                                  updateStatusHandler(order._id, 'Cancelled');
+                                }
+                              }}
                               className="text-danger d-flex align-items-center"
                             >
                               <FaTimes className="me-2" /> Cancel Order
@@ -617,29 +565,24 @@ const OrderList = () => {
                             </Dropdown.Item>
                             <Dropdown.Divider />
                             <Dropdown.Item 
-                              onClick={() => handleCancelClick(order)}
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to cancel this order?')) {
+                                  updateStatusHandler(order._id, 'Cancelled');
+                                }
+                              }}
                               className="text-danger d-flex align-items-center"
                             >
                               <FaTimes className="me-2" /> Cancel Order
                             </Dropdown.Item>
                           </>
                         )}
-                        {order.orderStatus === 'Pending' && (
-                          <>
-                            <Dropdown.Item 
-                              onClick={() => updateStatusHandler(order._id, 'Processing')}
-                              className="d-flex align-items-center"
-                            >
-                              <FaCog className="me-2" /> Mark as Processing
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item 
-                              onClick={() => handleCancelClick(order)}
-                              className="text-danger d-flex align-items-center"
-                            >
-                              <FaTimes className="me-2" /> Cancel Order
-                            </Dropdown.Item>
-                          </>
+                        {!['Processing', 'Shipped', 'Cancelled', 'Delivered'].includes(order.orderStatus) && (
+                          <Dropdown.Item 
+                            onClick={() => updateStatusHandler(order._id, 'Processing')}
+                            className="d-flex align-items-center"
+                          >
+                            <FaCog className="me-2" /> Mark as Processing
+                          </Dropdown.Item>
                         )}
                       </Dropdown.Menu>
                     </Dropdown>
