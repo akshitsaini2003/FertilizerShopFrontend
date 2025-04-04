@@ -349,6 +349,19 @@ const OrderList = () => {
     }
   };
 
+  const cancelOrderHandler = async (orderId) => {
+    if (window.confirm('Are you sure you want to cancel this order?')) {
+      try {
+        await API.put(`/orders/${orderId}/cancel`);
+        await fetchOrders();
+        toast.success('Order cancelled successfully');
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Error cancelling order');
+        console.error('Error cancelling order:', error);
+      }
+    }
+  };
+
   const getStatusBadge = (status) => {
     const variants = {
       Delivered: 'success',
@@ -524,12 +537,24 @@ const OrderList = () => {
                     >
                       <FaEye className="me-1" />
                     </Link>
+                    {['Processing', 'Shipped'].includes(order.orderStatus) && (
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => cancelOrderHandler(order._id)}
+                        className="d-flex align-items-center"
+                        title="Cancel Order"
+                      >
+                        <FaTimes className="me-1" />
+                      </Button>
+                    )}
                     <Dropdown>
                       <Dropdown.Toggle
                         variant="outline-secondary"
                         size="sm"
                         className="d-flex align-items-center"
                         disabled={['Cancelled', 'Delivered'].includes(order.orderStatus)}
+                        title="Update Status"
                       >
                         <FaEdit className="me-1" />
                       </Dropdown.Toggle>
@@ -543,16 +568,6 @@ const OrderList = () => {
                               <FaBox className="me-2" /> Mark as Shipped
                             </Dropdown.Item>
                             <Dropdown.Divider />
-                            <Dropdown.Item 
-                              onClick={() => {
-                                if (window.confirm('Are you sure you want to cancel this order?')) {
-                                  updateStatusHandler(order._id, 'Cancelled');
-                                }
-                              }}
-                              className="text-danger d-flex align-items-center"
-                            >
-                              <FaTimes className="me-2" /> Cancel Order
-                            </Dropdown.Item>
                           </>
                         )}
                         {order.orderStatus === 'Shipped' && (
@@ -564,16 +579,6 @@ const OrderList = () => {
                               <FaCheck className="me-2" /> Mark as Delivered
                             </Dropdown.Item>
                             <Dropdown.Divider />
-                            <Dropdown.Item 
-                              onClick={() => {
-                                if (window.confirm('Are you sure you want to cancel this order?')) {
-                                  updateStatusHandler(order._id, 'Cancelled');
-                                }
-                              }}
-                              className="text-danger d-flex align-items-center"
-                            >
-                              <FaTimes className="me-2" /> Cancel Order
-                            </Dropdown.Item>
                           </>
                         )}
                         {!['Processing', 'Shipped', 'Cancelled', 'Delivered'].includes(order.orderStatus) && (
