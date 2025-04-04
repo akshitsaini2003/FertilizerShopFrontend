@@ -43,14 +43,13 @@ const AddEditProduct = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   
-  // Update the presentationOptions constant
-const presentationOptions = {
-  'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
-  'Liquid Form': ['10ml', '80ml', '1l'],
-  'Seed Form': ['1kg', '5kg', '25kg'],
-  'Granules Form': ['45kg'],
-  'Jaivik Form': ['40kg']
-};
+  const presentationOptions = {
+    'Powder Form': ['100gm', '250gm', '500gm', '1kg', '3kg', '5kg', '25kg', '50kg'],
+    'Liquid Form': ['10ml', '80ml', '1l'],
+    'Seed Form': ['1kg', '5kg', '25kg'],
+    'Granules Form': ['45kg'],
+    'Jaivik Form': ['40kg']
+  };
 
   const categories = ['wheat', 'rice', 'sugarcane', 'bajra', 'vegetable', 'Mango'];
 
@@ -89,7 +88,7 @@ const presentationOptions = {
     if (!product.name.trim()) errors.name = 'Product name is required';
     if (!product.price || isNaN(product.price)) errors.price = 'Valid price is required';
     if (product.price <= 0) errors.price = 'Price must be greater than 0';
-    if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100)) {
+    if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100) {
       errors.discount = 'Discount must be between 0-100';
     }
     if (!product.quantityInStock || isNaN(product.quantityInStock)) errors.quantityInStock = 'Valid quantity is required';
@@ -104,32 +103,46 @@ const presentationOptions = {
     return Object.keys(errors).length === 0;
   };
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  if (name === 'presentation') {
-    let defaultSize = '100gm';
-    if (value === 'Liquid Form') defaultSize = '10ml';
-    else if (value === 'Seed Form') defaultSize = '1kg';
-    else if (value === 'Granules Form') defaultSize = '45kg';
-    else if (value === 'Jaivik Form') defaultSize = '40kg';
-    
-    setProduct(prev => ({
-      ...prev,
-      presentation: value,
-      presentationSize: prev.presentationSize || defaultSize
-    }));
-  } else {
-    setProduct(prev => ({ ...prev, [name]: value }));
-  }
+    if (name === 'presentation') {
+      let defaultSize = '100gm';
+      if (value === 'Liquid Form') defaultSize = '10ml';
+      else if (value === 'Seed Form') defaultSize = '1kg';
+      else if (value === 'Granules Form') defaultSize = '45kg';
+      else if (value === 'Jaivik Form') defaultSize = '40kg';
+      
+      setProduct(prev => ({
+        ...prev,
+        presentation: value,
+        presentationSize: prev.presentationSize || defaultSize
+      }));
+    } else {
+      setProduct(prev => ({ ...prev, [name]: value }));
+    }
 
-  if (validationErrors[name]) {
-    setValidationErrors(prev => ({ ...prev, [name]: null }));
-  }
-};
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
 
   const handleNumberChange = (e) => {
     const { name, value } = e.target;
+    
+    // Special handling for discount field
+    if (name === 'discount') {
+      const numValue = Number(value);
+      if (value === '' || (!isNaN(numValue) && numValue >= 0 && numValue <= 100)) {
+        setProduct(prev => ({ ...prev, [name]: value }));
+        if (validationErrors[name]) {
+          setValidationErrors(prev => ({ ...prev, [name]: null }));
+        }
+      }
+      return;
+    }
+    
+    // For other number fields
     if (value === '' || !isNaN(value)) {
       setProduct(prev => ({ ...prev, [name]: value }));
       if (validationErrors[name]) {
@@ -234,11 +247,11 @@ const handleChange = (e) => {
         discount: product.discount === '' ? 0 : Number(product.discount),
         price: Number(product.price),
         quantityInStock: Number(product.quantityInStock),
-         presentationSize: product.presentationSize || 
-        (product.presentation === 'Liquid Form' ? '10ml' :
-         product.presentation === 'Seed Form' ? '1kg' :
-         product.presentation === 'Granules Form' ? '45kg' :
-         product.presentation === 'Jaivik Form' ? '40kg' : '100gm')
+        presentationSize: product.presentationSize || 
+          (product.presentation === 'Liquid Form' ? '10ml' :
+           product.presentation === 'Seed Form' ? '1kg' :
+           product.presentation === 'Granules Form' ? '45kg' :
+           product.presentation === 'Jaivik Form' ? '40kg' : '100gm')
       };
 
       if (isEdit) {
