@@ -365,7 +365,7 @@ const Cart = () => {
                               value={item.quantity}
                               onChange={(e) => updateQty(item.product, e.target.value)}
                               className="mx-2 text-center"
-                              style={{ width: '50px' }}
+                              style={{ width: '70px' }}
                             />
                             <Button
                               variant="outline-secondary"
